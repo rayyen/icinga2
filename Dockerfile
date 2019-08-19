@@ -3,13 +3,11 @@
 
 FROM debian:stretch
 
-MAINTAINER Jordan Jethwa
-
 ENV APACHE2_HTTP=REDIRECT \
     ICINGA2_FEATURE_GRAPHITE=false \
     ICINGA2_FEATURE_GRAPHITE_HOST=graphite \
     ICINGA2_FEATURE_GRAPHITE_PORT=2003 \
-    ICINGA2_FEATURE_GRAPHITE_URL=http://graphite \
+    ICINGA2_FEATURE_GRAPHITE_URL=http://graphite-service \
     ICINGA2_USER_FULLNAME="Icinga2" \
     ICINGA2_FEATURE_DIRECTOR="true" \
     ICINGA2_FEATURE_DIRECTOR_KICKSTART="true" \
@@ -48,6 +46,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
       supervisor \
       unzip \
       wget \
+      git \
+      vim \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
