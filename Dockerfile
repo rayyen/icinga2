@@ -3,10 +3,6 @@
 
 FROM debian:buster
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 4306acec96e42ad0710df96562fbd260373692a5
 ENV APACHE2_HTTP=REDIRECT \
     ICINGA2_FEATURE_GRAPHITE=false \
     ICINGA2_FEATURE_GRAPHITE_HOST=graphite \
