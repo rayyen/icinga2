@@ -1,15 +1,14 @@
 # Dockerfile for icinga2 with icingaweb2
 # https://github.com/jjethwa/icinga2
 
-FROM debian:stretch
+FROM debian:buster
 
-MAINTAINER Jordan Jethwa
 
 ENV APACHE2_HTTP=REDIRECT \
     ICINGA2_FEATURE_GRAPHITE=false \
     ICINGA2_FEATURE_GRAPHITE_HOST=graphite \
     ICINGA2_FEATURE_GRAPHITE_PORT=2003 \
-    ICINGA2_FEATURE_GRAPHITE_URL=http://graphite \
+    ICINGA2_FEATURE_GRAPHITE_URL=http://graphite-service \
     ICINGA2_USER_FULLNAME="Icinga2" \
     ICINGA2_FEATURE_DIRECTOR="true" \
     ICINGA2_FEATURE_DIRECTOR_KICKSTART="true" \
@@ -17,10 +16,9 @@ ENV APACHE2_HTTP=REDIRECT \
 
 RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \
- && apt-get upgrade -y \
+ && apt-get dist-upgrade -y \
  && apt-get install -y --no-install-recommends \
       apache2 \
-      ca-cacert \
       ca-certificates \
       curl \
       dnsutils \
@@ -43,17 +41,19 @@ RUN export DEBIAN_FRONTEND=noninteractive \
       procps \
       pwgen \
       snmp \
-      ssmtp \
+      msmtp \
       sudo \
       supervisor \
       unzip \
       wget \
+      vim \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 RUN export DEBIAN_FRONTEND=noninteractive \
  && curl -s https://packages.icinga.com/icinga.key \
  | apt-key add - \
+ && echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/icinga2.list \
  && echo "deb http://packages.icinga.org/debian icinga-$(lsb_release -cs) main" > /etc/apt/sources.list.d/icinga2.list \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -84,14 +84,25 @@ RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
  && mkdir -p /usr/local/share/icingaweb2/modules/graphite \
  && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-graphite/archive/${GITREF_MODGRAPHITE}.tar.gz" \
  | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/graphite -f - icingaweb2-module-graphite-${GITREF_MODGRAPHITE}/ \
+# reactbundle
+ && mkdir -p /usr/local/share/icingaweb2/modules/reactbundle \
+ && wget -q https://github.com/Icinga/icingaweb2-module-reactbundle/archive/v0.6.0.tar.gz -O - \
+   |  tar xfz - -C /usr/local/share/icingaweb2/modules/reactbundle --strip-components=1  \
+ # ipl
+ && mkdir /usr/local/share/icingaweb2/modules/ipl \
+ && wget -q https://github.com/Icinga/icingaweb2-module-ipl/archive/v0.3.0.tar.gz -O - \
+   | tar xfz - -C /usr/local/share/icingaweb2/modules/ipl --strip-components=1 \
+# incubator
+ && mkdir /usr/local/share/icingaweb2/modules/incubator \
+ && wget -q https://github.com/Icinga/icingaweb2-module-incubator/archive/v0.3.0.tar.gz -O - \
+   | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 \
 # Icingaweb2 AWS
  && mkdir -p /usr/local/share/icingaweb2/modules/aws \
  && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-aws/archive/${GITREF_MODAWS}.tar.gz" \
  | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/aws -f - icingaweb2-module-aws-${GITREF_MODAWS}/ \
  && wget -q --no-cookies "https://github.com/aws/aws-sdk-php/releases/download/2.8.30/aws.zip" \
  && unzip -d /usr/local/share/icingaweb2/modules/aws/library/vendor/aws aws.zip \
- && rm aws.zip \
- && true
+ && rm -f aws.zip 
 
 ADD content/ /
 
@@ -110,6 +121,16 @@ RUN true \
      /bin/ping \
      /bin/ping6 \
      /usr/lib/nagios/plugins/check_icmp
+
+RUN export DEBIAN_FRONTEND=noninteractive \
+ && apt-get update \
+ && apt-get install unattended-upgrades apt-listchanges -y \
+ && echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections \
+ && dpkg-reconfigure -f noninteractive unattended-upgrades 
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+COPY etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
 
 EXPOSE 80 443 5665
 
