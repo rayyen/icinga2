@@ -138,10 +138,11 @@ COPY etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-u
 COPY etc/icinga2/scripts/custom-mail-host-notification.sh /etc/icinga2/scripts/mail-host-notification.sh
 COPY etc/icinga2/scripts/custom-mail-service-notification.sh /etc/icinga2/scripts/mail-service-notification.sh
 COPY etc/mail.rc /etc/mail.rc
+COPY etc/msmtprc /etc/msmtprc
 
-RUN mkdir -p /var/log/msmtp/ \
-  && chown nagios:nagios /etc/msmtp \
-  && chmod 600 /etc/msmtp
+RUN mkdir -p /var/log/msmtprc/ \
+  && chown nagios:nagios /etc/msmtprc \
+  && chmod 600 /etc/msmtprc
 
 
 EXPOSE 80 443 5665
