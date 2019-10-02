@@ -135,8 +135,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 COPY etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
 
 ## mSMTP Configuration
-COPY etc/icinga2/scripts/custom-mail-host-notification.sh /etc/icinga2/scripts/custom-mail-host-notification.sh
-COPY etc/icinga2/scripts/custom-mail-service-notification /etc/icinga2/scripts/custom-mail-service-notification
+COPY etc/icinga2/scripts/custom-mail-host-notification.sh /etc/icinga2/scripts/mail-host-notification.sh
+COPY etc/icinga2/scripts/custom-mail-service-notification.sh /etc/icinga2/scripts/mail-service-notification.sh
 COPY etc/mail.rc /etc/mail.rc
 
 RUN mkdir -p /var/log/msmtp/ \
