@@ -11,7 +11,8 @@ ENV APACHE2_HTTP=REDIRECT \
     ICINGA2_USER_FULLNAME="Icinga2" \
     ICINGA2_FEATURE_DIRECTOR="true" \
     ICINGA2_FEATURE_DIRECTOR_KICKSTART="true" \
-    ICINGA2_FEATURE_DIRECTOR_USER="icinga2-director"
+    ICINGA2_FEATURE_DIRECTOR_USER="icinga2-director" \
+    DEBIAN_FRONTEND=noninteractive
 
 RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \
@@ -41,6 +42,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
       pwgen \
       snmp \
       msmtp \
+      msmtp-mta \
+      s-nail \
       sudo \
       supervisor \
       unzip \
@@ -122,15 +125,24 @@ RUN true \
      /bin/ping6 \
      /usr/lib/nagios/plugins/check_icmp
 
+## Unattended Upgrade Configuration
 RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \
  && apt-get install unattended-upgrades apt-listchanges -y \
  && echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections \
  && dpkg-reconfigure -f noninteractive unattended-upgrades 
 
-ENV DEBIAN_FRONTEND=noninteractive
-
 COPY etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
+
+## mSMTP Configuration
+COPY etc/icinga2/scripts/custom-mail-host-notification.sh /etc/icinga2/scripts/custom-mail-host-notification.sh
+COPY etc/icinga2/scripts/custom-mail-service-notification /etc/icinga2/scripts/custom-mail-service-notification
+COPY etc/mail.rc /etc/mail.rc
+
+RUN mkdir -p /var/log/msmtp/ \
+  && chown nagios:nagios /etc/msmtp \
+  && chmod 600 /etc/msmtp
+
 
 EXPOSE 80 443 5665
 
