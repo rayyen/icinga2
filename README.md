@@ -21,5 +21,6 @@ the main different between this repo and jjethwa as follow. for detail configura
 
 ### 2.0.1
 
-1. mSMTP
+1. mSMTP:
+   please mount msmtprc into /etc/msmtprc, you can find msmtprc example in etc/msmtprc
 
