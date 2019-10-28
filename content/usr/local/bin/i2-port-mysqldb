@@ -8,4 +8,4 @@ mysql <<-END
 	GRANT ALL ON *.* TO 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' WITH GRANT OPTION;
 END
 
-echo "Please shutdown your container now and copy the MySQL datafolder to the new mariadb container."
+echo "DOCKERBUILDER.....Please shutdown your container now and copy the MySQL datafolder to the new mariadb container."

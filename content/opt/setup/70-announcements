@@ -54,3 +54,5 @@ if [ "${ALL_MESSAGES}" != "" ]; then
 	${ALL_MESSAGES}
 	END
 fi
+
+

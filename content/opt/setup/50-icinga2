@@ -14,8 +14,8 @@ mysql_wait \
 	"${ICINGA2_IDO_MYSQL_HOST}" \
 	"${ICINGA2_IDO_MYSQL_PORT}"
 
-if [ ! "$(ls -A /etc/icinga2)" ]; then
-	echo "=> Copying fresh config-files for /etc/icinga2"
+if [ ! "$(ls -A /etc/icinga2/icinga2.conf)" ]; then
+	echo "DOCKERBUILDER.....=> Copying fresh config-files for /etc/icinga2"
 	cp -R /etc/icinga2.dist/* /etc/icinga2/
 fi
 
@@ -67,7 +67,7 @@ mysql_user \
 	>> /var/log/icinga2/mysql-schema.log \
 	2>&1 || true
 
-cat > /etc/icinga2/features-available/ido-mysql.conf <<-END
+cat > /etc/icinga2.dist/features-available/ido-mysql.conf <<-END
 /**
  * The db_ido_mysql library implements IDO functionality
  * for MySQL.

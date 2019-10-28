@@ -2,6 +2,10 @@
 
 . /opt/helpers
 
+icingacli module enable reactbundle 
+icingacli module enable ipl 
+icingacli module enable incubator
+
 CNFSUFFIX=icingaweb2director
 mysql_cnf_init_section \
 	"${CNFSUFFIX}" \

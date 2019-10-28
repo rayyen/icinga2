@@ -89,23 +89,16 @@ RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
  | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/graphite -f - icingaweb2-module-graphite-${GITREF_MODGRAPHITE}/ \
 # reactbundle
  && mkdir -p /usr/local/share/icingaweb2/modules/reactbundle \
- && wget -q https://github.com/Icinga/icingaweb2-module-reactbundle/archive/v0.6.0.tar.gz -O - \
+ && wget -q https://github.com/Icinga/icingaweb2-module-reactbundle/archive/v0.7.0.tar.gz -O - \
    |  tar xfz - -C /usr/local/share/icingaweb2/modules/reactbundle --strip-components=1  \
  # ipl
  && mkdir /usr/local/share/icingaweb2/modules/ipl \
- && wget -q https://github.com/Icinga/icingaweb2-module-ipl/archive/v0.3.0.tar.gz -O - \
+ && wget -q https://github.com/Icinga/icingaweb2-module-ipl/archive/v0.4.0.tar.gz -O - \
    | tar xfz - -C /usr/local/share/icingaweb2/modules/ipl --strip-components=1 \
 # incubator
  && mkdir /usr/local/share/icingaweb2/modules/incubator \
- && wget -q https://github.com/Icinga/icingaweb2-module-incubator/archive/v0.3.0.tar.gz -O - \
-   | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 \
-# Icingaweb2 AWS
- && mkdir -p /usr/local/share/icingaweb2/modules/aws \
- && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-aws/archive/${GITREF_MODAWS}.tar.gz" \
- | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/aws -f - icingaweb2-module-aws-${GITREF_MODAWS}/ \
- && wget -q --no-cookies "https://github.com/aws/aws-sdk-php/releases/download/2.8.30/aws.zip" \
- && unzip -d /usr/local/share/icingaweb2/modules/aws/library/vendor/aws aws.zip \
- && rm -f aws.zip 
+ && wget -q https://github.com/Icinga/icingaweb2-module-incubator/archive/v0.5.0.tar.gz -O - \
+   | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 
 
 ADD content/ /
 

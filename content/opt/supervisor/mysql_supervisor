@@ -6,7 +6,7 @@
 {  [ "${ICINGA2_IDO_MYSQL_HOST}"         == "localhost" ] \
 || [ "${ICINGAWEB2_MYSQL_HOST}"          == "localhost" ] \
 || [ "${ICINGAWEB2_DIRECTOR_MYSQL_HOST}" == "localhost" ]
-} || { echo "Skpipping local MySQL server bootup."; sleep infinity; }
+} || { echo "DOCKERBUILDER.....Skpipping local MySQL server bootup."; sleep infinity; }
 
 service mysql start
 

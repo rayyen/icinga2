@@ -8,7 +8,7 @@ ICINGA2HOST="`hostname`"
 MAILBIN="mail"
 
 if [ -z "`which $MAILBIN`" ] ; then
-  echo "$MAILBIN not found in \$PATH. Consider installing it."
+  echo "DOCKERBUILDER.....=>$MAILBIN not found in \$PATH. Consider installing it."
   exit 1
 fi
 

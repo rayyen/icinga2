@@ -49,7 +49,7 @@ MySQL user 'root' has no password but only allows local connections
 
 $(
 if evaluate_boolean "${ICINGA2_FEATURE_GRAPHITE}"; then
-	echo "Graphite writer enabled and sending data to carbon agent at: ${ICINGA2_FEATURE_GRAPHITE_HOST}:${ICINGA2_FEATURE_GRAPHITE_PORT}"
+	echo "DOCKERBUILDER.....Graphite writer enabled and sending data to carbon agent at: ${ICINGA2_FEATURE_GRAPHITE_HOST}:${ICINGA2_FEATURE_GRAPHITE_PORT}"
 fi
 )
 
