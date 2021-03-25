@@ -4,7 +4,6 @@
 
     docker pull aceritscloud/icinga2-base:tagname
 
-
 ## Image details
 
 the main different between this repo and jjethwa as follow. for detail configuration, available environment configuration please check https://github.com/jjethwa/icinga2 
@@ -13,16 +12,12 @@ the main different between this repo and jjethwa as follow. for detail configura
 
 ### 1.0.x
 
-#### Changed
-
 - 1.0.x based on debian:stretch
 - Support MySQL 8.0
 
 ---
 
 ### 2.0.0
-
-#### Changed
 
 - 2.0.0 base on debian:buster
 - Support MySQL 8.0
@@ -32,7 +27,7 @@ the main different between this repo and jjethwa as follow. for detail configura
 
 ### 2.0.1
 
-#### Changed
+Customization
 
 - mSMTP:
    please mount msmtprc into /etc/msmtprc, you can find msmtprc example in ./etc/msmtprc
@@ -41,17 +36,18 @@ the main different between this repo and jjethwa as follow. for detail configura
 
 ### 2.0.2
 
-#### Upgraded
+Upgrade
 
 - icinga2:2.11.2
 - icingaweb2-module-reactbundle:0.7.0
 - icingaweb2-module-incubator:0.5.0
 - icingaweb2-module-ipl:0.4.0
 
+---
 
 ### 2.0.3
 
-#### Upgraded
+Upgrade
 
 - debain update package at 2021-03-25
 - icinga2:2.11.2
@@ -65,10 +61,12 @@ the main different between this repo and jjethwa as follow. for detail configura
 - monitoring: 2.8.2
 - reactbundle: 0.9.0
 
-#### Customized
+Customization
 
 - fileshipper
-    new fileshipper configuration imports.ini under /etc/icingaweb2/modules/fileshipper/imports.ini 
+    new fileshipper configuration imports.ini under /etc/icingaweb2/modules/fileshipper/imports.ini
+
+---
 
 ### 2.0.4
 
