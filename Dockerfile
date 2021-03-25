@@ -108,11 +108,19 @@ RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
  && mkdir /usr/local/share/icingaweb2/modules/incubator \
  && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-incubator/archive/${GITREF_INCUGATOR}.tar.gz" \
    | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 \
+# Module x509
+    && mkdir -p /usr/local/share/icingaweb2/modules/x509/ \
+    && wget -q --no-cookies "https://github.com/Icinga/icingaweb2-module-x509/archive/v1.0.0.zip" \
+    && unzip -d /usr/local/share/icingaweb2/modules/x509 v1.0.0.zip \
+    && mv /usr/local/share/icingaweb2/modules/x509/icingaweb2-module-x509-1.0.0/* /usr/local/share/icingaweb2/modules/x509/ \
+    && rm -rf /usr/local/share/icingaweb2/modules/x509/icingaweb2-module-x509-1.0.0/ \
+    && true \
 # fileshipper
  && mkdir /usr/local/share/icingaweb2/modules/icingaweb2-module-fileshipper-${GITREF_FILESHIPPER} \
  && wget -q -O - "https://github.com/Icinga/icingaweb2-module-fileshipper/archive/${GITREF_FILESHIPPER}.tar.gz" \
    | tar xfz - -C /usr/local/share/icingaweb2/modules/icingaweb2-module-fileshipper-${GITREF_FILESHIPPER} --strip-components 1 \
  && mv /usr/local/share/icingaweb2/modules/icingaweb2-module-fileshipper-${GITREF_FILESHIPPER} /usr/local/share/icingaweb2/modules/fileshipper
+
 
 ADD content/ /
 

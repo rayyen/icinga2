@@ -4,6 +4,7 @@
 
     docker pull aceritscloud/icinga2-base:tagname
 
+
 ## Image details
 
 the main different between this repo and jjethwa as follow. for detail configuration, available environment configuration please check https://github.com/jjethwa/icinga2 
@@ -68,3 +69,7 @@ the main different between this repo and jjethwa as follow. for detail configura
 
 - fileshipper
     new fileshipper configuration imports.ini under /etc/icingaweb2/modules/fileshipper/imports.ini 
+
+### 2.0.4
+
+- merge upstream jjethwa , fix conflict and remain my customization.
