@@ -35,6 +35,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
       netbase \
       openssh-client \
       openssl \
+      libssl-dev \
       php-curl \
       php-ldap \
       php-mysql \
@@ -71,12 +72,20 @@ RUN export DEBIAN_FRONTEND=noninteractive \
       nagios-plugins-contrib \
       nagios-snmp-plugins \
       libmonitoring-plugin-perl \
+      python3-pip \
+      python3-setuptools \
+      build-essential \
+      cargo \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 ARG GITREF_DIRECTOR=master
 ARG GITREF_MODGRAPHITE=master
 ARG GITREF_MODAWS=master
+ARG GITREF_REACTBUNDLE=v0.9.0
+ARG GITREF_IPL=v0.5.0
+ARG GITREF_INCUGATOR=v0.6.0
+ARG GITREF_FILESHIPPER=v1.2.0
 
 RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
 # Icinga Director
@@ -89,16 +98,21 @@ RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
  | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/graphite -f - icingaweb2-module-graphite-${GITREF_MODGRAPHITE}/ \
 # reactbundle
  && mkdir -p /usr/local/share/icingaweb2/modules/reactbundle \
- && wget -q https://github.com/Icinga/icingaweb2-module-reactbundle/archive/v0.7.0.tar.gz -O - \
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-reactbundle/archive/${GITREF_REACTBUNDLE}.tar.gz" \
    |  tar xfz - -C /usr/local/share/icingaweb2/modules/reactbundle --strip-components=1  \
  # ipl
  && mkdir /usr/local/share/icingaweb2/modules/ipl \
- && wget -q https://github.com/Icinga/icingaweb2-module-ipl/archive/v0.4.0.tar.gz -O - \
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-ipl/archive/${GITREF_IPL}.tar.gz" \
    | tar xfz - -C /usr/local/share/icingaweb2/modules/ipl --strip-components=1 \
 # incubator
  && mkdir /usr/local/share/icingaweb2/modules/incubator \
- && wget -q https://github.com/Icinga/icingaweb2-module-incubator/archive/v0.5.0.tar.gz -O - \
-   | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-incubator/archive/${GITREF_INCUGATOR}.tar.gz" \
+   | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 \
+# fileshipper
+ && mkdir /usr/local/share/icingaweb2/modules/icingaweb2-module-fileshipper-${GITREF_FILESHIPPER} \
+ && wget -q -O - "https://github.com/Icinga/icingaweb2-module-fileshipper/archive/${GITREF_FILESHIPPER}.tar.gz" \
+   | tar xfz - -C /usr/local/share/icingaweb2/modules/icingaweb2-module-fileshipper-${GITREF_FILESHIPPER} --strip-components 1 \
+ && mv /usr/local/share/icingaweb2/modules/icingaweb2-module-fileshipper-${GITREF_FILESHIPPER} /usr/local/share/icingaweb2/modules/fileshipper
 
 ADD content/ /
 
@@ -116,9 +130,10 @@ RUN true \
  && chmod u+s,g+s \
      /bin/ping \
      /bin/ping6 \
-     /usr/lib/nagios/plugins/check_icmp
+     /usr/lib/nagios/plugins/check_icmp \
+  && ln /usr/bin/python3.7 /usr/local/bin/python3.7
 
-## Unattended Upgrade Configuration
+## DIFFER-UPPSTREAM  Unattended Upgrade Configuration
 RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \
  && apt-get install unattended-upgrades apt-listchanges -y \
@@ -127,16 +142,31 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 
 COPY etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
 
-## mSMTP Configuration
+## DIFFER-UPPSTREAM mSMTP Configuration
 COPY etc/icinga2/scripts/custom-mail-host-notification.sh /etc/icinga2/scripts/mail-host-notification.sh
 COPY etc/icinga2/scripts/custom-mail-service-notification.sh /etc/icinga2/scripts/mail-service-notification.sh
 COPY etc/mail.rc /etc/mail.rc
 COPY etc/msmtprc /etc/msmtprc
 
+## FileShipper Configuration files
+RUN mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper \
+  mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper/import1 \
+  mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper/import2
+  
+COPY etc/icingaweb2/modules/fileshipper/imports.ini  /etc/icingaweb2/modules/fileshipper/imports.ini 
+
 RUN mkdir -p /var/log/msmtprc/ \
   && chown nagios:nagios /etc/msmtprc \
   && chmod 600 /etc/msmtprc
 
+## DIFFER-UPSTREAM
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+
+RUN echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+
+RUN python3.7 -m pip install --upgrade pip \
+  && python3.7 -m pip install cryptography paramiko icinga2api PyMySQL
 
 EXPOSE 80 443 5665
 
