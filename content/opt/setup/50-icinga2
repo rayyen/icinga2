@@ -51,6 +51,7 @@ if [ "${ICINGA2_IDO_MYSQL_HOST}" == "localhost" ]; then
 	  GRANT ALL
 	    ON ${ICINGA2_IDO_MYSQL_DATA}.*
 	    TO '${ICINGA2_IDO_MYSQL_USER}'@'localhost';
+			
 	END
 elif [ -n "${MYSQL_ROOT_PASSWORD:-}" ]; then
 	mysql_root <<-END
@@ -71,6 +72,23 @@ mysql_user \
 	2>&1 || true
 
 cat > /etc/icinga2/features-available/ido-mysql.conf <<-END
+/**
+ * The db_ido_mysql library implements IDO functionality
+ * for MySQL.
+ */
+
+library "db_ido_mysql"
+
+object IdoMysqlConnection "ido-mysql" {
+  user     = "${ICINGA2_IDO_MYSQL_USER}"
+  password = "${ICINGA2_IDO_MYSQL_PASS}"
+  host     = "${ICINGA2_IDO_MYSQL_HOST}"
+  port     =  ${ICINGA2_IDO_MYSQL_PORT}
+  database = "${ICINGA2_IDO_MYSQL_DATA}"
+}
+END
+
+cat > /etc/icinga2/features-enabled/ido-mysql.conf <<-END
 /**
  * The db_ido_mysql library implements IDO functionality
  * for MySQL.

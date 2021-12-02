@@ -2,30 +2,11 @@
 
 This repository contains the source for the [icinga2](https://www.icinga.org/icinga2/) [docker](https://www.docker.com) image.
 
-The dockerhub-repository is located at [https://hub.docker.com/r/jordan/icinga2/](https://hub.docker.com/r/jordan/icinga2/).
-
-This build is automated by push for the git-repo. Just crawl it via:
-
-    docker pull jordan/icinga2
+    docker pull aceritscloud/icinga2-its:tagname
 
 ## Image details
 
-1. Based on debian:buster
-1. Key-Features:
-   - icinga2
-   - icingacli
-   - icingaweb2
-   - icingaweb2-director module
-   - icingaweb2-graphite module
-   - icingaweb2-module-aws
-   - ssmtp
-   - MySQL
-   - Supervisor
-   - Apache2
-   - SSL Support
-   - Custom CA support
-1. No SSH. Use docker [exec](https://docs.docker.com/engine/reference/commandline/exec/) or [nsenter](https://github.com/jpetazzo/nsenter)
-1. If passwords are not supplied, they will be randomly generated and shown via stdout.
+the main different between this repo and jjethwa as follow. for detail configuration, available environment configuration please check <https://github.com/jjethwa/icinga2>
 
 ## Usage
 
@@ -86,6 +67,9 @@ docker run -t \
 
 - merge upstream jjethwa , fix conflict and remain my customization.
 
+### 2.0.5 (de)
+
+- upgrade to r2.13.2-1
 
 #### Msmtp Configration
 
@@ -94,10 +78,93 @@ use data field to switch smtp account id in msmtprc
 1. add DataField msmtp_account_id
 2. at notification template add new field(custom_properties) -m) $notification.vars.msmtp_account$
 
-
-docker run -p 80:80 -p 443:443 -e DEFAULT_MYSQL_PASS=5tgb6yhn -e MYSQL_ROOT_PASSWORD=5tgb6yhn -e ICINGA2_FEATURE_DIRECTOR_PASS=5tgb6yhn -t 8f03e82eb4c5
-
-
 #### Debug
 
 docker run -it --entrypoint /bin/bash $IMAGE_NAME -s
+
+## Local Debug example
+
+```bash
+docker run  --name cps-db -e MYSQL_ROOT_PASSWORD=5tgb6yhn -d mysql:latest --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password 
+```
+
+```bash
+docker run  -it -p 80:80 -p 444:443 -e DEFAULT_MYSQL_HOST=172.17.0.2 -e DEFAULT_MYSQL_PASS=5tgb6yhn \
+-e MYSQL_ROOT_PASSWORD=5tgb6yhn \
+-e ICINGA2_FEATURE_DIRECTOR_PASS=5tgb6yhn \
+--name=i2 \
+```
+
+## Production example
+
+
+Master
+```bash
+docker run --name mysql  -v /nfsmount/monitor-m1/mysql/conf:/etc/mysql/conf.d -v /nfsmount/monitor-m1/mysql/data:/var/lib/mysql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=5tgb6yhn -d  --security-opt seccomp=unconfined mysql:8.0.27 --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+ 
+
+```
+
+```bash
+docker run --name mysql-icinga -v /nfsmount/monitor-tn-s0/mysql/conf:/etc/mysql/conf.d -v /nfsmount/monitor-tn-s0/mysql/data:/var/lib/mysql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=5tgb6yhn -d mysql:8.0.27
+--security-opt seccomp=unconfined --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+```
+
+Master
+
+```bash
+
+docker run  -itd -p 5665:5665 -p 82:80 -p 444:443 -e DEFAULT_MYSQL_HOST=172.17.0.2 -e DEFAULT_MYSQL_PASS=5tgb6yhn \
+-e MYSQL_ROOT_PASSWORD=5tgb6yhn \
+-e ICINGA2_FEATURE_DIRECTOR_PASS=5tgb6yhn \
+-v /nfsmount/monitor-m1/icinga2/ssmtp:/etc/ssmtp \
+-v /nfsmount/projects/icinga2-tools/:/usr/local/share/icinga2-tools \
+-v /nfsmount/monitor-m1/icinga2/var/lib/icinga2/:/var/lib/icinga2/ \
+-v /nfsmount/monitor-m1/icinga2/conf:/etc/icinga2 \
+-v /nfsmount/monitor-m1/icinga2/webconf:/etc/icingaweb2 \
+--mount type=bind,source=/nfsmount/monitor-m1/etc/msmtprc,target=/etc/msmtprc \
+-v /nfsmount/monitor-m1/etc/icinga2/features-enabled:/etc/icinga2/features-enabled \
+--hostname monitor-m1.acerits.net \
+--name m1 \
+--security-opt seccomp=unconfined \
+-t aceritscloud/icinga2-its:2.0.7s
+```
+
+TN0
+
+```bash
+docker run  -itd -p 5665:5665 -p 82:80 -p 444:443 -e DEFAULT_MYSQL_HOST=172.17.0.2 -e DEFAULT_MYSQL_PASS=5tgb6yhn \
+-e MYSQL_ROOT_PASSWORD=5tgb6yhn \
+-e ICINGA2_FEATURE_DIRECTOR_PASS=5tgb6yhn \
+-v /nfsmount/monitor-tn1/icinga2/ssmtp:/etc/ssmtp \
+-v /nfsmount/projects/icinga2-tools/:/usr/local/share/icinga2-tools \
+-v /nfsmount/monitor-tn1/icinga2/var/lib/icinga2/:/var/lib/icinga2/ \
+-v /nfsmount/monitor-tn1/icinga2/conf:/etc/icinga2 \
+-v /nfsmount/monitor-tn1/icinga2/webconf:/etc/icingaweb2 \
+--mount type=bind,source=/nfsmount/monitor-tn1/etc/msmtprc,target=/etc/msmtprc \
+-v /nfsmount/monitor-tn1/etc/icinga2/features-enabled:/etc/icinga2/features-enabled \
+--hostname monitor-tn1.acerits.net \
+--name m1 \
+--security-opt seccomp=unconfined \
+-t aceritscloud/icinga2-its:2.0.7s
+```
+
+CREATE DATABASE IF NOT EXISTS icinga2idomysql;
+   CREATE USER IF NOT EXISTS 'icinga2'@'localhost'
+     IDENTIFIED BY '5tgb6yhn';
+   GRANT ALL
+     ON icinga2idomysql.*
+     TO 'icinga2'@'localhost';
+
+UPDATE mysql.user SET Password=PASSWORD('5tgb6yhn') WHERE User='icinga2';
+
+### DockerHub
+aceritscloud
+Kec370$$$
+
+
+curl -H 'Accept: application/json' \
+     -u 'icinga2-director:5tgb6yhn' \
+     'https://monitor-m1.acerits.net/icingaweb2/director/host?name=hostname.example.com'
+
+

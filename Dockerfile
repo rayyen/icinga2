@@ -83,6 +83,7 @@ ARG GITREF_INCUBATOR=v0.5.0
 ARG GITREF_IPL=v0.3.0
 
 RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
+<<<<<<< HEAD
     # Icinga Director
     && mkdir -p /usr/local/share/icingaweb2/modules/director/ \
     && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-director/archive/v1.8.0.tar.gz" \
@@ -111,6 +112,29 @@ RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
     && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-ipl/archive/v0.3.0.tar.gz" \
     | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/ipl -f - \
     # Module x509
+=======
+# Icinga Director
+ && mkdir -p /usr/local/share/icingaweb2/modules/director/ \
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-director/archive/refs/tags/v1.8.1.tar.gz" \
+ | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/director --exclude=.gitignore -f - \
+# Icingaweb2 Graphite
+ && mkdir -p /usr/local/share/icingaweb2/modules/graphite \
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-graphite/archive/${GITREF_MODGRAPHITE}.tar.gz" \
+ | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/graphite -f - icingaweb2-module-graphite-${GITREF_MODGRAPHITE}/ \
+# reactbundle
+ && mkdir -p /usr/local/share/icingaweb2/modules/reactbundle \
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-reactbundle/archive/${GITREF_REACTBUNDLE}.tar.gz" \
+   |  tar xfz - -C /usr/local/share/icingaweb2/modules/reactbundle --strip-components=1  \
+ # ipl
+ && mkdir /usr/local/share/icingaweb2/modules/ipl \
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-ipl/archive/${GITREF_IPL}.tar.gz" \
+   | tar xfz - -C /usr/local/share/icingaweb2/modules/ipl --strip-components=1 \
+# incubator
+ && mkdir /usr/local/share/icingaweb2/modules/incubator \
+ && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-incubator/archive/${GITREF_INCUGATOR}.tar.gz" \
+   | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 \
+# Module x509
+>>>>>>> a4ec3d8 (修正大部分問題是個重要的改版)
     && mkdir -p /usr/local/share/icingaweb2/modules/x509/ \
     && wget -q --no-cookies "https://github.com/Icinga/icingaweb2-module-x509/archive/v1.0.0.zip" \
     && unzip -d /usr/local/share/icingaweb2/modules/x509 v1.0.0.zip \
@@ -122,6 +146,7 @@ ADD content/ /
 
 # Final fixes
 RUN true \
+<<<<<<< HEAD
     && sed -i 's/vars\.os.*/vars.os = "Docker"/' /etc/icinga2/conf.d/hosts.conf \
     && mv /etc/icingaweb2/ /etc/icingaweb2.dist \
     && mv /etc/icinga2/ /etc/icinga2.dist \
@@ -137,6 +162,58 @@ RUN true \
     /bin/ping \
     /bin/ping6 \
     /usr/lib/nagios/plugins/check_icmp
+=======
+ && sed -i 's/vars\.os.*/vars.os = "Docker"/' /etc/icinga2/conf.d/hosts.conf \
+ && mv /etc/icingaweb2/ /etc/icingaweb2.dist \
+ && mkdir /etc/icingaweb2 \
+ && mv /etc/icinga2/ /etc/icinga2.dist \
+ && mkdir /etc/icinga2 \
+ && usermod -aG icingaweb2 www-data \
+ && usermod -aG nagios www-data \
+ && rm -rf \
+     /var/lib/mysql/* \
+ && chmod u+s,g+s \
+     /bin/ping \
+     /bin/ping6 \
+     /usr/lib/nagios/plugins/check_icmp \
+  && ln /usr/bin/python3.7 /usr/local/bin/python3.7
+
+## DIFFER-UPPSTREAM  Unattended Upgrade Configuration
+RUN export DEBIAN_FRONTEND=noninteractive \
+ && apt-get update \
+ && apt-get install unattended-upgrades apt-listchanges -y \
+ && echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections \
+ && dpkg-reconfigure -f noninteractive unattended-upgrades 
+
+COPY etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
+
+## DIFFER-UPPSTREAM mSMTP Configuration
+COPY etc/icinga2/scripts/custom-mail-host-notification.sh /etc/icinga2/scripts/mail-host-notification.sh
+COPY etc/icinga2/scripts/custom-mail-service-notification.sh /etc/icinga2/scripts/mail-service-notification.sh
+COPY etc/mail.rc /etc/mail.rc
+COPY etc/msmtprc /etc/msmtprc
+
+## FileShipper Configuration files
+RUN mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper \
+  mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper/import1 \
+  mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper/import2
+  
+COPY etc/icingaweb2/modules/fileshipper/imports.ini  /etc/icingaweb2/modules/fileshipper/imports.ini 
+
+RUN mkdir -p /var/log/msmtprc/ \
+  && chown nagios:nagios /etc/msmtprc \
+  && chmod 600 /etc/msmtprc
+
+## DIFFER-UPSTREAM
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+
+RUN echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+RUN echo 'set mouse-=a' >> ~/.vimrc
+
+RUN python3.7 -m pip install --upgrade pip \
+  && python3.7 -m pip install cryptography paramiko icinga2api PyMySQL
+>>>>>>> a4ec3d8 (修正大部分問題是個重要的改版)
 
 EXPOSE 80 443 5665
 
