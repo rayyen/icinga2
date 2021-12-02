@@ -1,0 +1,16 @@
+# Set defaults.
+defaults
+# Enable or disable TLS/SSL encryption.
+tls on
+tls_starttls on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+# Setup WP account's settings.
+account acerits.kec300@gmail.com
+host smtp.gmail.com
+port 587
+auth login
+user acerits.kec300@gmail.com 
+password Kec370!!
+from acerits.kec300@gmail.com
+logfile /var/log/msmtp/msmtp.log
+account default : acerits.kec300@gmail.com
