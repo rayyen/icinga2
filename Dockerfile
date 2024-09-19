@@ -1,20 +1,17 @@
 # Dockerfile for icinga2 with icingaweb2
 # https://github.com/jjethwa/icinga2
+FROM jordan/icinga2:latest
 
-FROM debian:buster
 
-ENV APACHE2_HTTP=REDIRECT \
-    ICINGA2_FEATURE_GRAPHITE=false \
-    ICINGA2_FEATURE_GRAPHITE_HOST=graphite \
-    ICINGA2_FEATURE_GRAPHITE_PORT=2003 \
-    ICINGA2_FEATURE_GRAPHITE_URL=http://graphite \
-    ICINGA2_FEATURE_GRAPHITE_SEND_THRESHOLDS="true" \
-    ICINGA2_FEATURE_GRAPHITE_SEND_METADATA="false" \
-    ICINGA2_USER_FULLNAME="Icinga2" \
-    ICINGA2_FEATURE_DIRECTOR="true" \
-    ICINGA2_FEATURE_DIRECTOR_KICKSTART="true" \
-    ICINGA2_FEATURE_DIRECTOR_USER="icinga2-director" \
-    MYSQL_ROOT_USER=root
+# ## DIFFER-UPPSTREAM mSMTP Configuration
+# COPY etc/mail.rc /etc/mail.rc
+# COPY msmtp/msmtprc /etc/msmtprc
+# COPY msmtp/aliases /etc/aliases
+
+
+# RUN mkdir -p /var/log/msmtprc/ \
+#   && chown nagios:nagios /etc/msmtprc \
+#   && chmod 600 /etc/msmtprc
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
@@ -22,6 +19,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get install -y --no-install-recommends \
     apache2 \
     ca-certificates \
+    apt-transport-https \
     curl \
     dnsutils \
     file \
@@ -30,9 +28,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     libdigest-hmac-perl \
     libnet-snmp-perl \
     locales \
-    logrotate \
     lsb-release \
-    bsd-mailx \
+    mailutils \
     mariadb-client \
     mariadb-server \
     netbase \
@@ -41,179 +38,24 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     php-curl \
     php-ldap \
     php-mysql \
-    php-mbstring \
-    php-gmp \
     procps \
     pwgen \
     snmp \
-    msmtp \
+    ssmtp \
     sudo \
     supervisor \
     unzip \
     wget \
-    && apt-get -y --purge remove exim4 exim4-base exim4-config exim4-daemon-light \
+    git \
+    vim \
+    python3 \
+    python3-pip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && curl -s https://packages.icinga.com/icinga.key \
-    | apt-key add - \
-    && echo "deb http://packages.icinga.org/debian icinga-$(lsb_release -cs) main" > /etc/apt/sources.list.d/icinga2.list \
-    && echo "deb http://deb.debian.org/debian $(lsb_release -cs)-backports main" > /etc/apt/sources.list.d/$(lsb_release -cs)-backports.list \
-    && apt-get update \
-    && apt-get install -y --install-recommends \
-    icinga2 \
-    icinga2-ido-mysql \
-    icingacli \
-    icingaweb2 \
-    icingaweb2-module-doc \
-    icingaweb2-module-monitoring \
-    monitoring-plugins \
-    nagios-nrpe-plugin \
-    nagios-plugins-contrib \
-    nagios-snmp-plugins \
-    libmonitoring-plugin-perl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-ARG GITREF_MODGRAPHITE=master
-ARG GITREF_MODAWS=master
-ARG GITREF_REACTBUNDLE=v0.7.0
-ARG GITREF_INCUBATOR=v0.5.0
-ARG GITREF_IPL=v0.3.0
-
-RUN mkdir -p /usr/local/share/icingaweb2/modules/ \
-<<<<<<< HEAD
-    # Icinga Director
-    && mkdir -p /usr/local/share/icingaweb2/modules/director/ \
-    && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-director/archive/v1.8.0.tar.gz" \
-    | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/director --exclude=.gitignore -f - \
-    # Icingaweb2 Graphite
-    && mkdir -p /usr/local/share/icingaweb2/modules/graphite \
-    && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-graphite/archive/v1.1.0.tar.gz" \
-    | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/graphite -f - \
-    # Icingaweb2 AWS
-    && mkdir -p /usr/local/share/icingaweb2/modules/aws \
-    && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-aws/archive/v1.0.0.tar.gz" \
-    | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/aws -f - \
-    && wget -q --no-cookies "https://github.com/aws/aws-sdk-php/releases/download/2.8.30/aws.zip" \
-    && unzip -d /usr/local/share/icingaweb2/modules/aws/library/vendor/aws aws.zip \
-    && rm aws.zip \
-    # Module Reactbundle
-    && mkdir -p /usr/local/share/icingaweb2/modules/reactbundle/ \
-    && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-reactbundle/archive/v0.7.0.tar.gz" \
-    | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/reactbundle -f - \
-    # Module Incubator
-    && mkdir -p /usr/local/share/icingaweb2/modules/incubator/ \
-    && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-incubator/archive/v0.6.0.tar.gz" \
-    | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/incubator -f - \
-    # Module Ipl
-    && mkdir -p /usr/local/share/icingaweb2/modules/ipl/ \
-    && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-ipl/archive/v0.3.0.tar.gz" \
-    | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/ipl -f - \
-    # Module x509
-=======
-# Icinga Director
- && mkdir -p /usr/local/share/icingaweb2/modules/director/ \
- && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-director/archive/refs/tags/v1.8.1.tar.gz" \
- | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/director --exclude=.gitignore -f - \
-# Icingaweb2 Graphite
- && mkdir -p /usr/local/share/icingaweb2/modules/graphite \
- && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-graphite/archive/${GITREF_MODGRAPHITE}.tar.gz" \
- | tar xz --strip-components=1 --directory=/usr/local/share/icingaweb2/modules/graphite -f - icingaweb2-module-graphite-${GITREF_MODGRAPHITE}/ \
-# reactbundle
- && mkdir -p /usr/local/share/icingaweb2/modules/reactbundle \
- && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-reactbundle/archive/${GITREF_REACTBUNDLE}.tar.gz" \
-   |  tar xfz - -C /usr/local/share/icingaweb2/modules/reactbundle --strip-components=1  \
- # ipl
- && mkdir /usr/local/share/icingaweb2/modules/ipl \
- && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-ipl/archive/${GITREF_IPL}.tar.gz" \
-   | tar xfz - -C /usr/local/share/icingaweb2/modules/ipl --strip-components=1 \
-# incubator
- && mkdir /usr/local/share/icingaweb2/modules/incubator \
- && wget -q --no-cookies -O - "https://github.com/Icinga/icingaweb2-module-incubator/archive/${GITREF_INCUGATOR}.tar.gz" \
-   | tar xfz - -C /usr/local/share/icingaweb2/modules/incubator --strip-components 1 \
-# Module x509
->>>>>>> a4ec3d8 (修正大部分問題是個重要的改版)
-    && mkdir -p /usr/local/share/icingaweb2/modules/x509/ \
-    && wget -q --no-cookies "https://github.com/Icinga/icingaweb2-module-x509/archive/v1.0.0.zip" \
-    && unzip -d /usr/local/share/icingaweb2/modules/x509 v1.0.0.zip \
-    && mv /usr/local/share/icingaweb2/modules/x509/icingaweb2-module-x509-1.0.0/* /usr/local/share/icingaweb2/modules/x509/ \
-    && rm -rf /usr/local/share/icingaweb2/modules/x509/icingaweb2-module-x509-1.0.0/ \
-    && true
-
-ADD content/ /
-
-# Final fixes
-RUN true \
-<<<<<<< HEAD
-    && sed -i 's/vars\.os.*/vars.os = "Docker"/' /etc/icinga2/conf.d/hosts.conf \
-    && mv /etc/icingaweb2/ /etc/icingaweb2.dist \
-    && mv /etc/icinga2/ /etc/icinga2.dist \
-    && mkdir -p /etc/icinga2 \
-    && usermod -aG icingaweb2 www-data \
-    && usermod -aG nagios www-data \
-    && mkdir -p /var/log/icinga2 \
-    && chmod 755 /var/log/icinga2 \
-    && chown nagios:adm /var/log/icinga2 \
-    && rm -rf \
-    /var/lib/mysql/* \
-    && chmod u+s,g+s \
-    /bin/ping \
-    /bin/ping6 \
-    /usr/lib/nagios/plugins/check_icmp
-=======
- && sed -i 's/vars\.os.*/vars.os = "Docker"/' /etc/icinga2/conf.d/hosts.conf \
- && mv /etc/icingaweb2/ /etc/icingaweb2.dist \
- && mkdir /etc/icingaweb2 \
- && mv /etc/icinga2/ /etc/icinga2.dist \
- && mkdir /etc/icinga2 \
- && usermod -aG icingaweb2 www-data \
- && usermod -aG nagios www-data \
- && rm -rf \
-     /var/lib/mysql/* \
- && chmod u+s,g+s \
-     /bin/ping \
-     /bin/ping6 \
-     /usr/lib/nagios/plugins/check_icmp \
-  && ln /usr/bin/python3.7 /usr/local/bin/python3.7
-
-## DIFFER-UPPSTREAM  Unattended Upgrade Configuration
-RUN export DEBIAN_FRONTEND=noninteractive \
- && apt-get update \
- && apt-get install unattended-upgrades apt-listchanges -y \
- && echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections \
- && dpkg-reconfigure -f noninteractive unattended-upgrades 
-
-COPY etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/50unattended-upgrades
-
-## DIFFER-UPPSTREAM mSMTP Configuration
-COPY etc/icinga2/scripts/custom-mail-host-notification.sh /etc/icinga2/scripts/mail-host-notification.sh
-COPY etc/icinga2/scripts/custom-mail-service-notification.sh /etc/icinga2/scripts/mail-service-notification.sh
-COPY etc/mail.rc /etc/mail.rc
-COPY etc/msmtprc /etc/msmtprc
-
-## FileShipper Configuration files
-RUN mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper \
-  mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper/import1 \
-  mkdir -p /usr/local/share/icingaweb2/modules/fileshipper/shipper/import2
+RUN python3 -m pip install --upgrade pip \
+  && python3 -m pip install cryptography paramiko icinga2api PyMySQL ujson
   
-COPY etc/icingaweb2/modules/fileshipper/imports.ini  /etc/icingaweb2/modules/fileshipper/imports.ini 
-
-RUN mkdir -p /var/log/msmtprc/ \
-  && chown nagios:nagios /etc/msmtprc \
-  && chmod 600 /etc/msmtprc
-
-## DIFFER-UPSTREAM
-
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
-
-RUN echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
-RUN echo 'set mouse-=a' >> ~/.vimrc
-
-RUN python3.7 -m pip install --upgrade pip \
-  && python3.7 -m pip install cryptography paramiko icinga2api PyMySQL
->>>>>>> a4ec3d8 (修正大部分問題是個重要的改版)
 
 EXPOSE 80 443 5665
 

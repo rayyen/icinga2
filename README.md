@@ -44,6 +44,7 @@ Icinga Web 2 can be accessed at [http://localhost/icingaweb2](http://localhost/i
 If you want to save your php-sessions over multiple boots, mount `/var/lib/php/sessions/` into your container. Session files will get saved there.
 
 example:
+
 ```
 docker run [...] -v $PWD/icingaweb2-sessions:/var/lib/php/sessions/ jordan/icinga2
 ```
@@ -97,13 +98,13 @@ docker run  -it -p 80:80 -p 444:443 -e DEFAULT_MYSQL_HOST=172.17.0.2 -e DEFAULT_
 
 ## Production example
 
-
 Master
-```bash
-docker run --name mysql  -v /nfsmount/monitor-m1/mysql/conf:/etc/mysql/conf.d -v /nfsmount/monitor-m1/mysql/data:/var/lib/mysql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=5tgb6yhn -d  --security-opt seccomp=unconfined mysql:8.0.27 --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
- 
 
+```bash
+docker run --name mysql  -v /nfsmount/monitor-m1/mysql/conf:/etc/mysql/conf.d -v /nfsmount/monitor-m1/mysql/data:/var/lib/mysql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=5tgb6yhn -d --ip 172.17.0.2 --security-opt seccomp=unconfined mysql:latest --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 ```
+
+Slave
 
 ```bash
 docker run --name mysql-icinga -v /nfsmount/monitor-tn-s0/mysql/conf:/etc/mysql/conf.d -v /nfsmount/monitor-tn-s0/mysql/data:/var/lib/mysql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=5tgb6yhn -d mysql:8.0.27
@@ -159,12 +160,43 @@ CREATE DATABASE IF NOT EXISTS icinga2idomysql;
 UPDATE mysql.user SET Password=PASSWORD('5tgb6yhn') WHERE User='icinga2';
 
 ### DockerHub
+
 aceritscloud
 Kec370$$$
-
 
 curl -H 'Accept: application/json' \
      -u 'icinga2-director:5tgb6yhn' \
      'https://monitor-m1.acerits.net/icingaweb2/director/host?name=hostname.example.com'
 
+### AWS Icinga 目前在AWS主機上的設定
+
+```
+docker network create --subnet 172.21.0.0/16 icinga
+```
+
+- MySQL
+
+```bash
+docker run --name mysql  -v /home/ubuntu/data/mysql/conf:/etc/mysql/conf.d -v /home/ubuntu/data/mysql/data:/var/lib/mysql -p 3306:3306 -p 33060:33060 -e MYSQL_ROOT_PASSWORD=5tgb6yhn -d --ip 172.21.0.2 --network icinga --security-opt seccomp=unconfined mysql:latest --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+```
+
+- Icinga
+
+```bash
+docker run -itd -p 5665:5665 -p 82:80 -p 444:443 -e DEFAULT_MYSQL_HOST=172.21.0.2 -e DEFAULT_MYSQL_PASS=5tgb6yhn \
+-e MYSQL_ROOT_PASSWORD=5tgb6yhn \
+-e ICINGA2_FEATURE_DIRECTOR_PASS=5tgb6yhn \
+-v /home/ubuntu/data/monitor-m1/icinga2/ssmtp:/etc/ssmtp \
+-v /home/ubuntu/project/icinga2-tools/:/usr/local/share/icinga2-tools \
+-v /home/ubuntu/data/monitor-m1/icinga2/var/lib/icinga2/:/var/lib/icinga2/ \
+-v /home/ubuntu/data/monitor-m1/icinga2/conf:/etc/icinga2 \
+-v /home/ubuntu/data/monitor-m1/icinga2/webconf:/etc/icingaweb2 \
+--mount type=bind,source=/home/ubuntu/data/monitor-m1/etc/msmtprc,target=/etc/msmtprc \
+-v /home/ubuntu/data/monitor-m1/etc/icinga2/features-enabled:/etc/icinga2/features-enabled \
+--hostname m1.acer-its.net \
+--network icinga \
+--name m1 \
+--security-opt seccomp=unconfined \
+-t aceritscloud/icinga2-its:2.0.7a
+```
 
